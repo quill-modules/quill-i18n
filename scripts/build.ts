@@ -2,8 +2,7 @@
 import process from 'node:process';
 import minimist from 'minimist';
 import { WebSocketServer } from 'ws';
-import { buildStyle, buildTS } from './bundle';
-import { run } from './run';
+import { buildTS } from './bundle';
 import { startServer } from './server';
 
 async function main() {
@@ -24,20 +23,13 @@ async function main() {
       }
     }
   }
-  await Promise.all([
-    buildStyle({
-      isDev,
-      onSuccess: reloadClients,
-    }),
-    buildTS({
-      isDev,
-      onSuccess: reloadClients,
-    }),
-  ]);
-  run(`unocss ${isDev ? '-w' : ''}`);
+  await buildTS({
+    isDev,
+    onSuccess: reloadClients,
+  });
 }
 
 main().catch((error) => {
-  console.error(error);
+  console.error('Error during build:', error);
   process.exit(1);
 });

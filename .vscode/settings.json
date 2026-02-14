@@ -8,8 +8,6 @@
   "prettier.enable": false,
   "eslint.enable": true,
   "eslint.rules.customizations": [
-    { "rule": "style/*", "severity": "off" },
-    { "rule": "format/*", "severity": "off" },
     { "rule": "*-indent", "severity": "off" },
     { "rule": "*-spacing", "severity": "off" },
     { "rule": "*-spaces", "severity": "off" },
@@ -36,5 +34,10 @@
     "less",
     "scss",
     "postcss"
-  ]
+  ],
+  "search.exclude": {
+    "docs/index.umd*": true,
+    "docs/*.css": true,
+    "**/dist": true
+  }
 }
