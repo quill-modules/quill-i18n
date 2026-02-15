@@ -138,7 +138,15 @@ export class I18n {
    */
   interpolate(template: string, params: Record<string, any>): string {
     return template.replaceAll(/\{(\w+)\}/g, (match, key) => {
-      return params[key] !== undefined ? String(params[key]) : match;
+      // Note: Uses `!= null` (loose equality) instead of `!== undefined` to treat both
+      // `null` and `undefined` as "missing values". This matches the behavior of popular
+      // i18n libraries like Vue I18n, where null values do not replace placeholders.
+      //
+      // Example:
+      // - t('Hello, {name}!', { name: 'John' }) => 'Hello, John!'
+      // - t('Hello, {name}!', { name: null }) => 'Hello, {name}!'
+      // - t('Hello, {name}!', {}) => 'Hello, {name}!'
+      return params[key] != null ? String(params[key]) : match;
     });
   }
 }
