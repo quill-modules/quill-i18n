@@ -1,6 +1,7 @@
 import type Quill from 'quill';
 import type { I18nMessages, I18nMessageValue, I18nOptions } from './types';
 import { I18N_LOCALE_CHANGE, I18N_MESSAGES_UPDATE } from './constants';
+import { createReactiveElement, ReactiveTranslation } from './reactive';
 import { isObject, isString } from './utils';
 
 export class I18n {
@@ -86,6 +87,18 @@ export class I18n {
 
   getAvailableLocales(): string[] {
     return Object.keys(this.messages);
+  }
+
+  createReactive(key: string, params?: Record<string, any>): ReactiveTranslation {
+    return new ReactiveTranslation(this.quill, key, params);
+  }
+
+  createReactiveElement(
+    tagName: string,
+    key: string,
+    params?: Record<string, any>,
+  ): ReturnType<typeof createReactiveElement> {
+    return createReactiveElement(this.quill, tagName, key, params);
   }
 
   getTranslation(key: string): string | undefined {
