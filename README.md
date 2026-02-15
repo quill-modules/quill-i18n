@@ -1,19 +1,16 @@
 # Quill I18n Plugin
 
-A comprehensive internationalization (i18n) module for Quill 2.x, providing translation management, language switching, and automatic UI updates.
+A comprehensive i18n module for Quill 2.x, providing translation management, language switching, and automatic UI updates.
 
 ## Features
 
 - ✅ **Core i18n Module** - Translation management and language switching
-- ✅ **Nested Translation Structure** - Support for hierarchical message organization
 - ✅ **Parameterized Translations** - Dynamic values in translations
 - ✅ **Event System** - Automatic UI updates on language change
 - ✅ **Reactive Helpers** - Automatic DOM updates for custom UI
 - ✅ **Toolbar i18n Support** - Optional internationalization for Quill's native toolbar
   - Prompt internationalization (link, image, video)
   - Picker internationalization (header, size, font, align)
-- ✅ **TypeScript Support** - Full type definitions
-- ✅ **Lightweight** - No dependencies except Quill
 
 ## Installation
 
@@ -23,7 +20,9 @@ npm install quill-i18n
 
 ## Quick Start
 
-### Basic Usage (Core I18n Only)
+### Basic Usage
+
+[demo code](https://github.com/quill-modules/quill-i18n/blob/main/docs/index.js)
 
 ```ts
 import Quill from 'quill';
@@ -62,101 +61,54 @@ i18n.setLocale('en');
 console.log(i18n.t('mymodule.title')); // "My Module"
 ```
 
-### With Toolbar Prompt I18n
+### With Default Toolbar Picker and `link/image/video` Tip Update
 
 ```ts
 import Quill from 'quill';
-import I18n, { createI18nToolbarHandlers } from 'quill-i18n';
+import I18n, { createI18nToolbarHandlers, enableToolbarI18nAutoUpdate } from 'quill-i18n';
 
 Quill.register('modules/i18n', I18n);
 
 const quill = new Quill('#editor', {
   modules: {
     i18n: {
-      locale: 'zh',
+      locale: 'en-US',
       messages: {
-        zh: {
+        'en-US': {
           toolbar: {
-            link: { prompt: '请输入链接地址:' },
-            image: { prompt: '请输入图片地址:' },
-            video: { prompt: '请输入视频地址:' }
+            header: {
+              '': 'Normal',
+              '1': 'Heading 1',
+              '2': 'Heading 2',
+              '3': 'Heading 3',
+            },
+            bold: 'Bold Text',
+            italic: 'Italic Text',
+            link: {
+              '': 'Insert Link',
+              'prompt': 'Enter link URL:',
+            },
+            image: {
+              '': 'Insert Image',
+              'prompt': 'Enter image URL:',
+            },
+            video: {
+              '': 'Insert Video',
+              'prompt': 'Enter video URL:',
+            },
           }
         }
       }
     },
     toolbar: {
-      container: [['bold', 'italic', 'link', 'image', 'video']],
-      handlers: createI18nToolbarHandlers() // Enable i18n prompts
-    }
-  }
-});
-```
-
-### With Full Toolbar I18n (Prompts + Pickers)
-
-```ts
-import Quill from 'quill';
-import I18n, {
-  createI18nToolbarHandlers,
-  enableToolbarI18nAutoUpdate
-} from 'quill-i18n';
-
-Quill.register('modules/i18n', I18n);
-
-const quill = new Quill('#editor', {
-  modules: {
-    i18n: {
-      locale: 'zh',
-      messages: {
-        en: {
-          toolbar: {
-            link: { prompt: 'Enter link URL:' },
-            header: {
-              normal: 'Normal',
-              h1: 'Heading 1',
-              h2: 'Heading 2'
-            },
-            size: {
-              small: 'Small',
-              normal: 'Normal',
-              large: 'Large'
-            }
-          }
-        },
-        zh: {
-          toolbar: {
-            link: { prompt: '请输入链接地址:' },
-            header: {
-              normal: '正文',
-              h1: '标题 1',
-              h2: '标题 2'
-            },
-            size: {
-              small: '小',
-              normal: '正常',
-              large: '大'
-            }
-          }
-        }
-      }
-    },
-    toolbar: {
-      container: [
-        [{ header: [1, 2, false] }],
-        [{ size: ['small', false, 'large'] }],
-        ['bold', 'link', 'image']
-      ],
-      handlers: createI18nToolbarHandlers()
+      container: [[{ header: [] }, 'bold', 'italic', 'link', 'image', 'video']],
+      handlers: createI18nToolbarHandlers() // Enable link/image/video i18n prompts
     }
   }
 });
 
-// Enable automatic picker i18n updates
+// Enable automatic toolbar picker i18n updates
 enableToolbarI18nAutoUpdate(quill);
-
-// Language switching will automatically update all toolbar UI
-const i18n = quill.getModule('i18n');
-i18n.setLocale('en'); // All prompts and pickers update to English
 ```
 
 ## API Reference
@@ -304,30 +256,41 @@ toolbar.align.justify;
 
 ### Reactive Helpers
 
-#### `createReactiveElement()`
+#### `i18n.createReactiveElement()`
 
 Create DOM elements that automatically update when translations change.
 
 ```ts
-import { createReactiveElement } from 'quill-i18n';
-
-const button = createReactiveElement(
-  quill,
+// Method 1: Via i18n instance (recommended for custom modules)
+const i18n = quill.getModule('i18n');
+const { element, reactive } = i18n.createReactiveElement(
   'button',
   'mymodule.button.save',
-  { className: 'save-btn' }
 );
-
-document.body.appendChild(button);
+element.classList.add('save-btn');
+document.body.appendChild(element);
 // Button text will automatically update when locale changes
 ```
 
-#### `ReactiveTranslation` Class
+```ts
+// Method 2: Direct import (also available)
+import { createReactiveElement } from 'quill-i18n';
+
+const { element, reactive } = createReactiveElement(
+  quill,
+  'button',
+  'mymodule.button.save'
+);
+```
+
+#### `i18n.createReactive()`
+
+Create a reactive translation instance.
 
 ```ts
-import { ReactiveTranslation } from 'quill-i18n';
-
-const reactive = new ReactiveTranslation(quill, 'mymodule.title');
+// Method 1: Via i18n instance (recommended for custom modules)
+const i18n = quill.getModule('i18n');
+const reactive = i18n.createReactive('mymodule.title');
 
 // Get current translation
 console.log(reactive.value);
@@ -340,157 +303,129 @@ reactive.updateElement(element);
 reactive.destroy();
 ```
 
-## Advanced Usage
-
-### Nested Translations
-
 ```ts
-const quill = new Quill('#editor', {
-  modules: {
-    i18n: {
-      locale: 'en',
-      messages: {
-        en: {
-          editor: {
-            toolbar: {
-              formatting: {
-                bold: 'Bold',
-                italic: 'Italic'
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-});
+// Method 2: Direct import (also available)
+import { ReactiveTranslation } from 'quill-i18n';
 
-const i18n = quill.getModule('i18n');
-i18n.t('editor.toolbar.formatting.bold'); // "Bold"
+const reactive = new ReactiveTranslation(quill, 'mymodule.title');
 ```
 
-### Parameterized Translations
+## Custom Modules Integration
+
+Integrate i18n into your custom Quill modules with these patterns.
+
+### Basic Usage
+
+Get the i18n module instance and use the `t()` method:
 
 ```ts
-const quill = new Quill('#editor', {
-  modules: {
-    i18n: {
-      locale: 'en',
-      messages: {
-        en: {
-          greeting: 'Hello, {name}!',
-          items: 'You have {count} items'
-        }
-      }
-    }
-  }
-});
+import type Quill from 'quill';
+import { Module } from 'quill';
 
-const i18n = quill.getModule('i18n');
-i18n.t('greeting', { name: 'John' }); // "Hello, John!"
-i18n.t('items', { count: 5 }); // "You have 5 items"
+class MyCustomModule extends Module {
+  constructor(quill: Quill, options: any) {
+    super(quill, options);
+    const i18n = quill.getModule('i18n');
+
+    // Get translated text
+    const title = i18n.t('mymodule.title');
+    console.log(title); // "My Module" or "我的模块"
+
+    // With parameters
+    const message = i18n.t('mymodule.welcome', { name: 'John' });
+    console.log(message); // "Welcome, John!" or "欢迎, John!"
+  }
+}
+
+Quill.register('modules/mymodule', MyCustomModule);
 ```
 
-### Custom Modules Integration
+### Using Reactive Translation
 
-See [Third-Party Integration Guide](./docs/third-party-integration.md) for detailed instructions on integrating i18n into custom Quill modules.
-
-## Complete Translation Example
+For automatic UI updates without manual event handling:
 
 ```ts
-const messages = {
-  en: {
-    toolbar: {
-      // Prompts
-      link: { prompt: 'Enter link URL:' },
-      image: { prompt: 'Enter image URL:' },
-      video: { prompt: 'Enter video URL:' },
+class MyCustomModule extends Module {
+  private titleTranslation: ReturnType<I18n['createReactive']>;
+  private countTranslation: ReturnType<I18n['createReactive']>;
 
-      // Pickers
-      header: {
-        normal: 'Normal',
-        h1: 'Heading 1',
-        h2: 'Heading 2',
-        h3: 'Heading 3'
-      },
-      size: {
-        small: 'Small',
-        normal: 'Normal',
-        large: 'Large',
-        huge: 'Huge'
-      },
-      font: {
-        sans: 'Sans Serif',
-        serif: 'Serif',
-        monospace: 'Monospace'
-      },
-      align: {
-        left: 'Left',
-        center: 'Center',
-        right: 'Right',
-        justify: 'Justify'
-      }
-    }
-  },
-  zh: {
-    toolbar: {
-      // Prompts
-      link: { prompt: '请输入链接地址:' },
-      image: { prompt: '请输入图片地址:' },
-      video: { prompt: '请输入视频地址:' },
+  constructor(quill: Quill, options: any) {
+    super(quill, options);
+    const i18n = quill.getModule('i18n');
 
-      // Pickers
-      header: {
-        normal: '正文',
-        h1: '标题 1',
-        h2: '标题 2',
-        h3: '标题 3'
-      },
-      size: {
-        small: '小',
-        normal: '正常',
-        large: '大',
-        huge: '超大'
-      },
-      font: {
-        sans: '无衬线',
-        serif: '衬线',
-        monospace: '等宽'
-      },
-      align: {
-        left: '左对齐',
-        center: '居中',
-        right: '右对齐',
-        justify: '两端对齐'
-      }
-    }
+    // Create reactive translations via i18n instance
+    this.titleTranslation = i18n.createReactive('mymodule.title');
+    this.countTranslation = i18n.createReactive('mymodule.count', { count: 0 });
+
+    // Bind to elements
+    const titleEl = document.querySelector('.mymodule-title');
+    this.titleTranslation.updateElement(titleEl);
+
+    const countEl = document.querySelector('.mymodule-count');
+    this.countTranslation.updateElement(countEl);
   }
-};
+
+  updateCount(count: number) {
+    // Update parameters - UI updates automatically
+    this.countTranslation.setParams({ count });
+  }
+
+  destroy() {
+    // Cleanup reactive translations
+    this.titleTranslation.destroy();
+    this.countTranslation.destroy();
+  }
+}
 ```
 
-## TypeScript Support
+### Creating Reactive Elements
 
-Full TypeScript definitions are included:
+Create DOM elements that automatically update when translations change:
 
 ```ts
-import type { I18nMessages, I18nOptions } from 'quill-i18n';
+class MyCustomModule extends Module {
+  constructor(quill: Quill, options: any) {
+    super(quill, options);
+    const i18n = quill.getModule('i18n');
 
-const options: I18nOptions = {
-  locale: 'zh',
-  messages: {
-    zh: {
+    // Create a reactive button element
+    const { element, reactive } = i18n.createReactiveElement(
+      'button',
+      'mymodule.actions.save',
+    );
+    element.classList.add('save-btn');
+    this.container.appendChild(element);
+    // Button text will automatically update when locale changes
+  }
+}
+```
+
+### Adding Messages Dynamically
+
+You can add translations at runtime:
+
+```ts
+class MyCustomModule extends Module {
+  constructor(quill: Quill, options: any) {
+    super(quill, options);
+    const i18n = quill.getModule('i18n');
+
+    // Organize your translations with a module namespace
+    // Add messages for your module
+    i18n.addMessages('en-US', {
       mymodule: {
-        title: '标题'
+        title: 'My Module'
       }
-    }
+    });
+
+    i18n.addMessages('zh-CN', {
+      mymodule: {
+        title: '我的模块'
+      }
+    });
   }
-};
+}
 ```
-
-## Browser Support
-
-- Modern browsers (Chrome, Firefox, Safari, Edge)
-- Requires Quill 2.0+
 
 ## License
 
