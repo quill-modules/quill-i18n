@@ -1,49 +1,156 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <title>Quill Table Module Demo</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
-      integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+"
-      crossorigin="anonymous"
-    />
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
-      integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg"
-      crossorigin="anonymous"
-    ></script>
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.snow.css" rel="stylesheet" />
-    <script type="module" src="./index.umd.js"></script>
-    <link href="./style/index.css" rel="stylesheet" />
-    <link href="./style/module.css" rel="stylesheet" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quill i18n Plugin - Complete Example</title>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/quill-toolbar-tip@0.1.0/dist/index.css" rel="stylesheet" />
     <style>
-      #btn1,
-      #writable1 {
-        padding: 0 6px;
-        border: 1px solid;
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+
+      .container {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        margin-top: 0;
+        color: #333;
+      }
+
+      .controls {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f8f9fa;
         border-radius: 4px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .controls label {
+        font-weight: 500;
+        color: #555;
+      }
+
+      .controls select,
+      .controls button {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
         cursor: pointer;
+        font-size: 14px;
+      }
+
+      .controls select {
+        padding: 6px 18px 6px 8px;
+      }
+
+      .controls button {
+        padding: 6px 16px;
+        background: #0066cc;
+        color: white;
+        border: none;
+      }
+
+      .controls button:hover {
+        background: #0052a3;
+      }
+
+      #editor {
+        min-height: 300px;
+        background: white;
+      }
+
+      .info {
+        margin-top: 20px;
+        padding: 15px;
+        background: #e7f3ff;
+        border-left: 4px solid #0066cc;
+        border-radius: 4px;
+      }
+
+      .info h3 {
+        margin-top: 0;
+        color: #0066cc;
+      }
+
+      .info ul {
+        margin: 10px 0;
+        padding-left: 20px;
+      }
+
+      .info li {
+        margin: 5px 0;
+      }
+
+      .reactive-demo {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f0f0f0;
+        border-radius: 4px;
+      }
+
+      .reactive-demo h3 {
+        margin-top: 0;
+      }
+
+      .reactive-text {
+        font-size: 18px;
+        font-weight: 500;
+        color: #333;
+        margin: 10px 0;
       }
     </style>
   </head>
-
   <body>
-    <div style="display: flex; flex-direction: column; max-width: 600px; margin: 20px auto">
-      <div>
-        <button id="btn1">console</button>
-        <button id="writable1">switch writable</button>
-        <div id="editor1" style="height: 600px"></div>
-        <div id="output1"></div>
+    <div class="container">
+      <h1>Quill i18n Plugin - Complete Example</h1>
+
+      <div class="controls">
+        <label for="locale-select">Language:</label>
+        <select id="locale-select">
+          <option value="en-US" selected>English</option>
+          <option value="zh-CN">中文</option>
+        </select>
+      </div>
+
+      <div id="editor"></div>
+
+      <div class="reactive-demo">
+        <h3>Reactive Translation Demo</h3>
+        <div class="reactive-text" id="reactive-title"></div>
+        <div class="reactive-text" id="reactive-description"></div>
+      </div>
+
+      <div class="info">
+        <h3>Features Demonstrated</h3>
+        <ul>
+          <li><strong>Toolbar Prompt i18n:</strong> Click "Test Link Prompt" or "Test Image Prompt" buttons</li>
+          <li><strong>Picker i18n:</strong> Check the Header and Size dropdowns in the toolbar</li>
+          <li><strong>Language Switching:</strong> Change language using the dropdown above</li>
+          <li><strong>Reactive Updates:</strong> Watch the text below update automatically</li>
+          <li><strong>Event System:</strong> Check browser console for event logs</li>
+        </ul>
       </div>
     </div>
+
+    <!-- Quill JS -->
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill-toolbar-tip@0.1.0/dist/index.umd.js"></script>
+
+    <!-- Quill i18n Plugin (use local build in development) -->
+    <script src="../dist/index.umd.js"></script>
+
     <script>
       const ws = new WebSocket('ws://localhost:8080');
       ws.onmessage = (event) => {
@@ -53,6 +160,6 @@
         }
       };
     </script>
-    <script type="module" src="./index.js"></script>
+    <script src="./index.js"></script>
   </body>
 </html>

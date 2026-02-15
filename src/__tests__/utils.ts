@@ -1,7 +1,8 @@
 import type { Delta as TypeDelta, Range as TypeRange } from 'quill';
+import type { I18nOptions } from '../types';
 import Quill from 'quill';
 import { expect, vi } from 'vitest';
-import { Module } from '../index';
+import I18n from '../i18n';
 
 const Delta = Quill.import('delta');
 
@@ -136,9 +137,9 @@ export function simulatePasteHTML(quill: Quill, range: TypeRange, html: string) 
   return vi.runAllTimersAsync();
 }
 
-export function createEditor(moduleOptions = {}, quillOptions = {}, register = {}) {
+export function createEditor(i18nOptions: I18nOptions = {}, quillOptions = {}, register = {}) {
   Quill.register({
-    'modules/template': Module,
+    'modules/i18n': I18n,
     ...register,
   }, true);
   const container = document.body.appendChild(document.createElement('div'));
@@ -146,11 +147,10 @@ export function createEditor(moduleOptions = {}, quillOptions = {}, register = {
   const quill = new Quill(container, {
     theme: 'snow',
     modules: {
-      template: true,
+      i18n: i18nOptions,
       history: {
         delay: 0,
       },
-      ...moduleOptions,
     },
     ...quillOptions,
   });
