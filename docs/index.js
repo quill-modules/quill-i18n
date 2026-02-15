@@ -1,5 +1,6 @@
 const Quill = window.Quill;
 const QuillI18n = window.QuillI18n;
+const { QuillToolbarTip, createI18nToolbarTipMap } = window.QuillToolbarTip;
 // Translation messages
 const messages = {
   'en-US': {
@@ -56,9 +57,18 @@ const messages = {
       'code-block': 'Code Block',
       'code': 'Inline Code',
       'clean': 'Clear Formatting',
-      'link': 'Insert Link',
-      'image': 'Insert Image',
-      'video': 'Insert Video',
+      'link': {
+        '': 'Insert Link',
+        'prompt': 'Enter link URL:',
+      },
+      'image': {
+        '': 'Insert Image',
+        'prompt': 'Enter image URL:',
+      },
+      'video': {
+        '': 'Insert Video',
+        'prompt': 'Enter video URL:',
+      },
       'formula': 'Insert Formula',
       'color': 'Color',
       'background': 'Background Color',
@@ -148,6 +158,7 @@ const messages = {
 // Register i18n module
 Quill.register({
   'modules/i18n': QuillI18n.I18n,
+  [`modules/${QuillToolbarTip.moduelName}`]: QuillToolbarTip,
 }, true);
 
 // Initialize Quill with i18n
@@ -174,6 +185,9 @@ const quill = new Quill('#editor', {
         [{ indent: '-1' }, { indent: '+1' }],
       ],
       handlers: QuillI18n.createI18nToolbarHandlers(),
+    },
+    [QuillToolbarTip.moduelName]: {
+      tipTextMap: createI18nToolbarTipMap(),
     },
   },
 });
