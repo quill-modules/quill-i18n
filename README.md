@@ -142,7 +142,8 @@ interface I18nOptions {
   locale?: string; // Current locale (default: 'en-US')
   fallbackLocale?: string; // Fallback locale (default: 'en-US')
   messages?: I18nMessages; // Translation messages
-  interpolate?: (template: string, params: Record<string, any>) => string; // Custom interpolation function
+  interpolate?: (this: QuillI18n, template: string, params: Record<string, any>) => string; // Custom interpolation function
+  getValue?: (this: QuillI18n, obj: Record<string, any> | undefined, path: string) => string | undefined; // Custom value lookup function
 }
 ```
 
@@ -173,6 +174,31 @@ i18n.t('greeting', { name: 'John' }); // "Hello, John!"
 ```
 
 When `interpolate` is not provided, the built-in `{paramName}` syntax is used.
+
+##### `getValue` Option
+
+By default, translation keys use dot-notation to access nested message objects (e.g. `'toolbar.link.prompt'`). You can replace this lookup entirely by providing a custom `getValue` function — useful when using flat keys, external data sources, or custom message formats:
+
+```ts
+const quill = new Quill('#editor', {
+  modules: {
+    i18n: {
+      locale: 'en-US',
+      messages: {
+        // flat key structure instead of nested objects
+        'en-US': { 'toolbar.link.prompt': 'Enter link URL:' }
+      },
+      // obj is messages[locale], path is the translation key
+      getValue: (obj, path) => obj?.[path] as string | undefined
+    }
+  }
+});
+
+const i18n = quill.getModule('i18n');
+i18n.t('toolbar.link.prompt'); // "Enter link URL:"
+```
+
+Returning `undefined` from `getValue` triggers the fallback locale, consistent with built-in behavior. When `getValue` is not provided, the built-in dot-path nested lookup is used.
 
 #### Events
 

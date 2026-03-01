@@ -15,6 +15,8 @@ export interface I18nOptions {
   messages?: I18nMessages;
   /** Custom interpolate function to replace the built-in {paramName} syntax */
   interpolate?: (template: string, params: Record<string, any>) => string;
+  /** Custom getValue function to replace the built-in dot-path nested value lookup */
+  getValue?: (obj: { [key: string]: I18nMessageValue } | undefined, path: string) => string | undefined;
 }
 
 export interface LocaleChangeEvent {

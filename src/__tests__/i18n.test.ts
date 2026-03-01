@@ -464,6 +464,76 @@ describe('getAvailableLocales() - get available locales', () => {
   });
 });
 
+describe('options.getValue - custom value lookup', () => {
+  it('should use custom getValue function when provided', () => {
+    const quill = createEditor({
+      locale: 'en-US',
+      messages: {
+        // flat key structure: obj passed to getValue is messages[locale]
+        'en-US': { 'toolbar.link.prompt': 'Enter link URL:' },
+      },
+      getValue: (obj, path) => obj?.[path] as string | undefined,
+    });
+    const i18n = quill.getModule('i18n') as I18n;
+
+    expect(i18n.t('toolbar.link.prompt')).toBe('Enter link URL:');
+  });
+
+  it('should bypass built-in dot-path lookup when custom getValue is provided', () => {
+    const quill = createEditor({
+      locale: 'en-US',
+      messages: {
+        'en-US': { toolbar: { link: { prompt: 'Enter link URL:' } } },
+      },
+      // always return undefined — built-in nested lookup never runs
+      getValue: (_obj, _path) => undefined,
+    });
+    const i18n = quill.getModule('i18n') as I18n;
+
+    // should fall back to key since getValue returns undefined
+    expect(i18n.t('toolbar.link.prompt')).toBe('toolbar.link.prompt');
+  });
+
+  it('should fall back to fallbackLocale when getValue returns undefined for current locale', () => {
+    const quill = createEditor({
+      locale: 'zh-CN',
+      fallbackLocale: 'en-US',
+      messages: {
+        'en-US': { hello: 'Hello' },
+        'zh-CN': {},
+      },
+      getValue: (obj, path) => obj?.[path] as string | undefined,
+    });
+    const i18n = quill.getModule('i18n') as I18n;
+
+    expect(i18n.t('hello')).toBe('Hello');
+  });
+
+  it('should call getValue with correct obj and path', () => {
+    const messages = { 'en-US': { greeting: 'Hello' } };
+    const getValue = vi.fn((_obj: any, _path: string) => 'mocked');
+    const quill = createEditor({ locale: 'en-US', messages, getValue });
+    const i18n = quill.getModule('i18n') as I18n;
+
+    i18n.t('greeting');
+
+    expect(getValue).toHaveBeenCalledTimes(1);
+    expect(getValue).toHaveBeenCalledWith(messages['en-US'], 'greeting');
+  });
+
+  it('should fall back to built-in lookup when getValue is not provided', () => {
+    const quill = createEditor({
+      locale: 'en-US',
+      messages: {
+        'en-US': { toolbar: { link: { prompt: 'Enter link URL:' } } },
+      },
+    });
+    const i18n = quill.getModule('i18n') as I18n;
+
+    expect(i18n.t('toolbar.link.prompt')).toBe('Enter link URL:');
+  });
+});
+
 describe('options.interpolate - custom interpolation', () => {
   it('should use custom interpolate function when provided', () => {
     const quill = createEditor({

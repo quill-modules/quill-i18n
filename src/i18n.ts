@@ -17,6 +17,7 @@ export class I18n {
       fallbackLocale: options.fallbackLocale || I18n.DEFAULTS.fallbackLocale!,
       messages: { ...I18n.DEFAULTS.messages, ...options.messages } as I18nMessages,
       interpolate: options.interpolate,
+      getValue: options.getValue,
     };
   }
 
@@ -84,7 +85,7 @@ export class I18n {
 
   has(key: string, locale?: string): boolean {
     const targetLocale = locale || this.options.locale;
-    return !!this.getNestedValue(this.options.messages[targetLocale], key);
+    return !!this.getValue(this.options.messages[targetLocale], key);
   }
 
   getAvailableLocales(): string[] {
@@ -105,14 +106,29 @@ export class I18n {
 
   getTranslation(key: string): string | undefined {
     // Try current locale first
-    let translation = this.getNestedValue(this.options.messages[this.options.locale], key);
+    let translation = this.getValue(this.options.messages[this.options.locale], key);
 
     // Fallback to default locale
     if (!translation && this.options.locale !== this.options.fallbackLocale) {
-      translation = this.getNestedValue(this.options.messages[this.options.fallbackLocale], key);
+      translation = this.getValue(this.options.messages[this.options.fallbackLocale], key);
     }
 
     return translation;
+  }
+
+  /**
+   * Get value by path, dispatches to options.getValue or getNestedValue
+   * @param obj Object to traverse
+   * @param path Dot-separated path like 'toolbar.link.prompt'
+   */
+  getValue(
+    obj: { [key: string]: I18nMessageValue } | undefined,
+    path: string,
+  ): string | undefined {
+    if (this.options.getValue) {
+      return this.options.getValue.call(this, obj, path);
+    }
+    return this.getNestedValue(obj, path);
   }
 
   /**
@@ -154,7 +170,7 @@ export class I18n {
    */
   interpolate(template: string, params: Record<string, any>): string {
     if (this.options.interpolate) {
-      return this.options.interpolate(template, params);
+      return this.options.interpolate.call(this, template, params);
     }
     return template.replaceAll(/\{(\w+)\}/g, (match, key) => {
       // Note: Uses `!= null` (loose equality) instead of `!== undefined` to treat both
