@@ -11,19 +11,21 @@ export class I18n {
     messages: {},
   };
 
+  static resolveOptions(options: Partial<I18nOptions>) {
+    return {
+      locale: options.locale || I18n.DEFAULTS.locale!,
+      fallbackLocale: options.fallbackLocale || I18n.DEFAULTS.fallbackLocale!,
+      messages: { ...I18n.DEFAULTS.messages, ...options.messages } as I18nMessages,
+      interpolate: options.interpolate,
+    };
+  }
+
   quill: Quill;
-  locale: string;
-  fallbackLocale: string;
-  messages: I18nMessages;
+  options: ReturnType<typeof I18n.resolveOptions>;
 
   constructor(quill: Quill, options: Partial<I18nOptions> = {}) {
     this.quill = quill;
-    this.locale = options.locale || I18n.DEFAULTS.locale!;
-    this.fallbackLocale = options.fallbackLocale || I18n.DEFAULTS.fallbackLocale!;
-    this.messages = {
-      ...I18n.DEFAULTS.messages,
-      ...options.messages,
-    };
+    this.options = I18n.resolveOptions(options);
   }
 
   /**
@@ -53,8 +55,8 @@ export class I18n {
   }
 
   setLocale(locale: string): void {
-    const oldLocale = this.locale;
-    this.locale = locale;
+    const oldLocale = this.options.locale;
+    this.options.locale = locale;
 
     this.quill.emitter.emit(I18N_LOCALE_CHANGE, {
       locale,
@@ -63,30 +65,30 @@ export class I18n {
   }
 
   getLocale(): string {
-    return this.locale;
+    return this.options.locale;
   }
 
   addMessages(locale: string, messages: Record<string, I18nMessageValue>): void {
-    if (!this.messages[locale]) {
-      this.messages[locale] = {};
+    if (!this.options.messages[locale]) {
+      this.options.messages[locale] = {};
     }
-    Object.assign(this.messages[locale], messages);
+    Object.assign(this.options.messages[locale], messages);
 
     this.quill.emitter.emit(I18N_MESSAGES_UPDATE, { locale, messages });
   }
 
   setMessages(messages: I18nMessages): void {
-    this.messages = messages;
+    this.options.messages = messages;
     this.quill.emitter.emit(I18N_MESSAGES_UPDATE, { messages });
   }
 
   has(key: string, locale?: string): boolean {
-    const targetLocale = locale || this.locale;
-    return !!this.getNestedValue(this.messages[targetLocale], key);
+    const targetLocale = locale || this.options.locale;
+    return !!this.getNestedValue(this.options.messages[targetLocale], key);
   }
 
   getAvailableLocales(): string[] {
-    return Object.keys(this.messages);
+    return Object.keys(this.options.messages);
   }
 
   createReactive(key: string, params?: Record<string, any>): ReactiveTranslation {
@@ -103,11 +105,11 @@ export class I18n {
 
   getTranslation(key: string): string | undefined {
     // Try current locale first
-    let translation = this.getNestedValue(this.messages[this.locale], key);
+    let translation = this.getNestedValue(this.options.messages[this.options.locale], key);
 
     // Fallback to default locale
-    if (!translation && this.locale !== this.fallbackLocale) {
-      translation = this.getNestedValue(this.messages[this.fallbackLocale], key);
+    if (!translation && this.options.locale !== this.options.fallbackLocale) {
+      translation = this.getNestedValue(this.options.messages[this.options.fallbackLocale], key);
     }
 
     return translation;
@@ -146,10 +148,14 @@ export class I18n {
   }
 
   /**
-   * Interpolate parameters into template string
-   * Replaces {paramName} with corresponding value
+   * Interpolate parameters into template string.
+   * Uses custom interpolate function from options if provided,
+   * otherwise replaces {paramName} with corresponding value.
    */
   interpolate(template: string, params: Record<string, any>): string {
+    if (this.options.interpolate) {
+      return this.options.interpolate(template, params);
+    }
     return template.replaceAll(/\{(\w+)\}/g, (match, key) => {
       // Note: Uses `!= null` (loose equality) instead of `!== undefined` to treat both
       // `null` and `undefined` as "missing values". This matches the behavior of popular

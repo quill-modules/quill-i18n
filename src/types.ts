@@ -13,6 +13,8 @@ export interface I18nOptions {
   fallbackLocale?: string;
   /** Translation messages for all locales */
   messages?: I18nMessages;
+  /** Custom interpolate function to replace the built-in {paramName} syntax */
+  interpolate?: (template: string, params: Record<string, any>) => string;
 }
 
 export interface LocaleChangeEvent {

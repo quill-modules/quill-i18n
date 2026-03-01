@@ -139,11 +139,40 @@ class I18n {
 
 ```ts
 interface I18nOptions {
-  locale?: string; // Current locale (default: 'en')
-  fallbackLocale?: string; // Fallback locale (default: 'en')
+  locale?: string; // Current locale (default: 'en-US')
+  fallbackLocale?: string; // Fallback locale (default: 'en-US')
   messages?: I18nMessages; // Translation messages
+  interpolate?: (template: string, params: Record<string, any>) => string; // Custom interpolation function
 }
 ```
+
+##### `interpolate` Option
+
+By default, translations use `{paramName}` syntax for parameter interpolation. You can replace this behavior entirely by providing a custom `interpolate` function:
+
+```ts
+const quill = new Quill('#editor', {
+  modules: {
+    i18n: {
+      locale: 'en-US',
+      messages: {
+        'en-US': { greeting: 'Hello, {{name}}!' }
+      },
+      // Replace built-in {name} syntax with {{name}} (mustache-style)
+      interpolate: (template, params) => {
+        return template.replaceAll(/\{\{(\w+)\}\}/g, (match, key) => {
+          return params[key] != null ? String(params[key]) : match;
+        });
+      }
+    }
+  }
+});
+
+const i18n = quill.getModule('i18n');
+i18n.t('greeting', { name: 'John' }); // "Hello, John!"
+```
+
+When `interpolate` is not provided, the built-in `{paramName}` syntax is used.
 
 #### Events
 

@@ -27,7 +27,7 @@ describe('constructor and initialization', () => {
     });
     const i18n = quill.getModule('i18n') as I18n;
 
-    expect(i18n.fallbackLocale).toBe('en-US');
+    expect(i18n.options.fallbackLocale).toBe('en-US');
   });
 
   it('should initialize with messages', () => {
@@ -38,7 +38,7 @@ describe('constructor and initialization', () => {
     const quill = createEditor({ messages });
     const i18n = quill.getModule('i18n') as I18n;
 
-    expect(i18n.messages).toEqual(messages);
+    expect(i18n.options.messages).toEqual(messages);
     expect(i18n.getAvailableLocales()).toEqual(['en-US', 'zh-CN']);
   });
 });
@@ -461,5 +461,86 @@ describe('getAvailableLocales() - get available locales', () => {
     i18n.addMessages('zh-CN', { hello: '你好' });
 
     expect(i18n.getAvailableLocales()).toEqual(['en-US', 'zh-CN']);
+  });
+});
+
+describe('options.interpolate - custom interpolation', () => {
+  it('should use custom interpolate function when provided', () => {
+    const quill = createEditor({
+      locale: 'en-US',
+      messages: {
+        'en-US': { greeting: 'Hello, {{name}}!' },
+      },
+      interpolate: (template, params) => {
+        return template.replaceAll(/\{\{(\w+)\}\}/g, (match, key) => {
+          return params[key] != null ? String(params[key]) : match;
+        });
+      },
+    });
+    const i18n = quill.getModule('i18n') as I18n;
+
+    expect(i18n.t('greeting', { name: 'John' })).toBe('Hello, John!');
+  });
+
+  it('should bypass built-in {paramName} syntax when custom interpolate is provided', () => {
+    const quill = createEditor({
+      locale: 'en-US',
+      messages: {
+        'en-US': { greeting: 'Hello, {name}!' },
+      },
+      interpolate: (template, _params) => template,
+    });
+    const i18n = quill.getModule('i18n') as I18n;
+
+    // custom function returns template as-is, so {name} should NOT be replaced
+    expect(i18n.t('greeting', { name: 'John' })).toBe('Hello, {name}!');
+  });
+
+  it('should fall back to built-in interpolation when interpolate option is not provided', () => {
+    const quill = createEditor({
+      locale: 'en-US',
+      messages: {
+        'en-US': { greeting: 'Hello, {name}!' },
+      },
+    });
+    const i18n = quill.getModule('i18n') as I18n;
+
+    expect(i18n.t('greeting', { name: 'John' })).toBe('Hello, John!');
+  });
+
+  it('should call custom interpolate with correct template and params', () => {
+    const interpolate = vi.fn((template: string, params: Record<string, any>) => {
+      return template.replace('{name}', params.name);
+    });
+    const quill = createEditor({
+      locale: 'en-US',
+      messages: {
+        'en-US': { greeting: 'Hello, {name}!' },
+      },
+      interpolate,
+    });
+    const i18n = quill.getModule('i18n') as I18n;
+
+    i18n.t('greeting', { name: 'Alice' });
+
+    expect(interpolate).toHaveBeenCalledTimes(1);
+    expect(interpolate).toHaveBeenCalledWith('Hello, {name}!', { name: 'Alice' });
+  });
+
+  it('should support multiple params in custom interpolate', () => {
+    const quill = createEditor({
+      locale: 'en-US',
+      messages: {
+        'en-US': { message: 'Hi %{name}, you have %{count} messages.' },
+      },
+      interpolate: (template, params) => {
+        return template.replaceAll(/%\{(\w+)\}/g, (match, key) => {
+          return params[key] != null ? String(params[key]) : match;
+        });
+      },
+    });
+    const i18n = quill.getModule('i18n') as I18n;
+
+    expect(i18n.t('message', { name: 'Bob', count: 3 })).toBe('Hi Bob, you have 3 messages.');
   });
 });
