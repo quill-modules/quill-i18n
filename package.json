@@ -1,7 +1,7 @@
 {
   "name": "quill-i18n",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "packageManager": "pnpm@10.29.3",
   "description": "An i18n module for Quill 2.x with toolbar UI auto-updates.",
   "author": "zzxming",
