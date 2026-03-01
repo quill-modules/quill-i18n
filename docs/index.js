@@ -75,7 +75,7 @@ const messages = {
     },
     demo: {
       title: 'Welcome to Quill i18n Plugin',
-      description: 'This is a demonstration of automatic translation updates',
+      description: 'Version {{version}} — a demonstration of automatic translation updates',
     },
   },
   'zh-CN': {
@@ -150,7 +150,7 @@ const messages = {
     },
     demo: {
       title: '欢迎使用 Quill i18n 插件',
-      description: '这是一个自动翻译更新的演示',
+      description: '版本 {{version}} — 这是一个自动翻译更新的演示',
     },
   },
 };
@@ -168,6 +168,11 @@ const quill = new Quill('#editor', {
     i18n: {
       locale: 'en-US',
       messages,
+      interpolate: (template, params) => {
+        return template.replaceAll(/\{\{(\w+)\}\}/g, (match, key) => {
+          return params[key] != null ? String(params[key]) : match;
+        });
+      },
     },
     toolbar: {
       container: [
@@ -202,7 +207,7 @@ const titleElement = document.getElementById('reactive-title');
 const descElement = document.getElementById('reactive-description');
 
 const titleReactive = new QuillI18n.ReactiveTranslation(quill, 'demo.title');
-const descReactive = new QuillI18n.ReactiveTranslation(quill, 'demo.description');
+const descReactive = new QuillI18n.ReactiveTranslation(quill, 'demo.description', { version: '0.1.0' });
 
 titleReactive.updateElement(titleElement);
 descReactive.updateElement(descElement);
