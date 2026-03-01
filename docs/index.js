@@ -168,10 +168,13 @@ const quill = new Quill('#editor', {
     i18n: {
       locale: 'en-US',
       messages,
-      interpolate: (template, params) => {
+      interpolate(template, params) {
         return template.replaceAll(/\{\{(\w+)\}\}/g, (match, key) => {
           return params[key] != null ? String(params[key]) : match;
         });
+      },
+      getValue(obj, path) {
+        return this.getNestedValue(obj, path);
       },
     },
     toolbar: {
