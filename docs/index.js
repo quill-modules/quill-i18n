@@ -1,7 +1,17 @@
 const Quill = window.Quill;
 const QuillI18n = window.QuillI18n;
 const { QuillToolbarTip, createI18nToolbarTipMap } = window.QuillToolbarTip;
-// Translation messages
+const {
+  default: TableUp,
+  TableAlign,
+  TableVirtualScrollbar,
+  TableResizeLine,
+  TableMenuContextmenu,
+  TableResizeScale,
+  defaultCustomSelect,
+  TableSelection,
+} = window.TableUp;
+
 const messages = {
   'en-US': {
     toolbar: {
@@ -75,7 +85,38 @@ const messages = {
     },
     demo: {
       title: 'Welcome to Quill i18n Plugin',
-      description: 'Version {{version}} — a demonstration of automatic translation updates',
+      description: 'Version {{version}} - a demonstration of automatic translation updates',
+    },
+    tableUp: {
+      fullCheckboxText: 'Insert full width table',
+      customBtnText: 'Custom',
+      confirmText: 'Confirm',
+      cancelText: 'Cancel',
+      rowText: 'Row',
+      colText: 'Column',
+      notPositiveNumberError: 'Please enter a positive integer',
+      custom: 'Custom',
+      clear: 'Clear',
+      transparent: 'Transparent',
+      perWidthInsufficient: 'The percentage width is insufficient. To complete the operation, the table needs to be converted to a fixed width. Do you want to continue?',
+      CopyCell: 'Copy cell',
+      CutCell: 'Cut cell',
+      InsertTop: 'Insert row above',
+      InsertRight: 'Insert column right',
+      InsertBottom: 'Insert row below',
+      InsertLeft: 'Insert column left',
+      MergeCell: 'Merge Cell',
+      SplitCell: 'Split Cell',
+      DeleteRow: 'Delete Row',
+      DeleteColumn: 'Delete Column',
+      DeleteTable: 'Delete table',
+      BackgroundColor: 'Set background color',
+      BorderColor: 'Set border color',
+      SwitchWidth: 'Switch table width',
+      InsertCaption: 'Insert table caption',
+      ToggleTdBetweenTh: 'Toggle td between th',
+      ConvertTothead: 'Convert to thead',
+      ConvertTotfoot: 'Convert to tfoot',
     },
   },
   'zh-CN': {
@@ -152,16 +193,46 @@ const messages = {
       title: '欢迎使用 Quill i18n 插件',
       description: '版本 {{version}} — 这是一个自动翻译更新的演示',
     },
+    tableUp: {
+      fullCheckboxText: '插入满宽表格',
+      customBtnText: '自定义行列数',
+      confirmText: '确认',
+      cancelText: '取消',
+      rowText: '行数',
+      colText: '列数',
+      notPositiveNumberError: '请输入正整数',
+      custom: '自定义',
+      clear: '清除',
+      transparent: '透明',
+      perWidthInsufficient: '百分比宽度不足。若继续操作，需要转为固定宽度，是否继续？',
+      CopyCell: '复制单元格',
+      CutCell: '剪切单元格',
+      InsertTop: '向上插入一行',
+      InsertRight: '向右插入一列',
+      InsertBottom: '向下插入一行',
+      InsertLeft: '向左插入一列',
+      MergeCell: '合并单元格',
+      SplitCell: '拆分单元格',
+      DeleteRow: '删除当前行',
+      DeleteColumn: '删除当前列',
+      DeleteTable: '删除当前表格',
+      BackgroundColor: '设置背景颜色',
+      BorderColor: '设置边框颜色',
+      SwitchWidth: '切换表格宽度',
+      InsertCaption: '插入表格标题',
+      ToggleTdBetweenTh: '切换表头单元格',
+      ConvertTothead: '转换为表头',
+      ConvertTotfoot: '转换为表尾',
+    },
   },
 };
 
-// Register i18n module
 Quill.register({
   'modules/i18n': QuillI18n.I18n,
   [`modules/${QuillToolbarTip.moduelName}`]: QuillToolbarTip,
+  [`modules/${TableUp.moduleName}`]: TableUp,
 }, true);
 
-// Initialize Quill with i18n
 const quill = new Quill('#editor', {
   theme: 'snow',
   modules: {
@@ -191,11 +262,29 @@ const quill = new Quill('#editor', {
         [{ font: [] }],
         [{ align: [] }, { align: '' }, { align: 'right' }, { align: 'center' }, { align: 'justify' }],
         [{ indent: '-1' }, { indent: '+1' }],
+        [{ [TableUp.toolName]: [] }],
       ],
       handlers: QuillI18n.createI18nToolbarHandlers(),
     },
     [QuillToolbarTip.moduelName]: {
       tipTextMap: createI18nToolbarTipMap(),
+    },
+    [TableUp.moduleName]: {
+      customSelect: defaultCustomSelect,
+      customBtn: true,
+      fullSwitch: true,
+      texts(key) {
+        const i18nModule = this.quill.getModule('i18n');
+        return i18nModule.t(`tableUp.${key}`);
+      },
+      modules: [
+        { module: TableVirtualScrollbar },
+        { module: TableAlign },
+        { module: TableResizeLine },
+        { module: TableResizeScale },
+        { module: TableSelection },
+        { module: TableMenuContextmenu },
+      ],
     },
   },
 });
@@ -217,8 +306,10 @@ descReactive.updateElement(descElement);
 
 // Language selector
 const localeSelect = document.getElementById('locale-select');
-localeSelect.addEventListener('change', (e) => {
+localeSelect.addEventListener('change', async (e) => {
   i18n.setLocale(e.target.value);
+  const tableUp = quill.getModule(TableUp.moduleName);
+  await tableUp?.refreshUI();
   console.log('Language changed to:', e.target.value);
 });
 
